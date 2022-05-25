@@ -11,7 +11,7 @@ namespace Prog_obiektowe_WSB_Projekt
     class Wydzial
     {
         private List<Jednostka> jednostki = new List<Jednostka>();
-        private List<Przedmiot> przedmioty = new List<Przedmiot>();
+        public List<Przedmiot> przedmioty = new List<Przedmiot>();
         private List<Student> studenci = new List<Student>();
 
         public void DodajJednostke(string nazwa, string adres)
@@ -29,8 +29,15 @@ namespace Prog_obiektowe_WSB_Projekt
 
         public void DodajStudenta(Student s)
         {
-            studenci.Add(s);
-            Console.WriteLine("Dodano nowego studenta, który nazywa się \"" + s.ImieNazwisko + "\";");
+            try
+            {
+                s.wydzialy.Add(this);
+                studenci.Add(s);
+                Console.WriteLine("Dodano nowego studenta, który nazywa się \"" + s.ImieNazwisko + "\";");
+            }
+            catch {
+                Console.WriteLine("Nie udało się dodać studenta " + s.ImieNazwisko + " do tego wydziału..");
+            }
         }
 
         public bool DodajWykladowce(Wykladowca w, string nazwaJednostki)
@@ -95,8 +102,7 @@ namespace Prog_obiektowe_WSB_Projekt
                     {
                         if(s.NrIndeksu == nrIndeksu)
                         {
-                            s.DodajOcene(nazwaPrzedmiotu, ocena, data);
-                            result = true;
+                            result = s.DodajOcene(nazwaPrzedmiotu, ocena, data);
                         }
                     }
                     if (!result) Console.WriteLine("Mimo prawidłowej nazwy przedmiotu, nie udało się odnaleźć studenta o podanym numerz indeksu. Ocena nie zostanie dodana.");
@@ -114,6 +120,7 @@ namespace Prog_obiektowe_WSB_Projekt
                 if(student.NrIndeksu == nrIndeksu)
                 {
                     studenci.Remove(student);
+                    student.wydzialy.Remove(this);
                     Console.WriteLine("Student o numerze indeksu " + nrIndeksu + " został prawidłowo usunięty z listy.");
                     result = true;
                 }
@@ -161,7 +168,7 @@ namespace Prog_obiektowe_WSB_Projekt
 
         public virtual void WypiszInfo()
         {
-
+            Console.WriteLine("Imię i Nazwisko:" + imie + " " + nazwisko + "; Data Urodzenia: " + dataUrodzenia + "; "); 
         }
     }
 
@@ -172,7 +179,8 @@ namespace Prog_obiektowe_WSB_Projekt
         private int rok = 0;
         private int grupa = 0;
         private int nrIndeksu = 0;
-        private List<OcenaKoncowa> oceny = new List<OcenaKoncowa>();
+        public List<Wydzial> wydzialy = new List<Wydzial>(2);
+        public List<OcenaKoncowa> oceny = new List<OcenaKoncowa>();
 
         public Student(string imie, string nazwisko, string dataUrodzenia, string kierunek, string specjalnosc, int rok, int grupa, int nrIndeksu) : base(imie, nazwisko, dataUrodzenia)
         {
@@ -195,17 +203,43 @@ namespace Prog_obiektowe_WSB_Projekt
 
         public override void WypiszInfo()
         {
-
+            base.WypiszInfo();
+            Console.Write("Kierunek Studiów: " + kierunek + "; Specjalność: " + specjalnosc + "; Rok Studiów: " + rok + "; Grupa: " + grupa + "; Nr. Indeksu: " + nrIndeksu + "; ");
         }
 
         public void InfoOceny()
         {
-
+            Console.WriteLine("OCENY KOŃCOWE Z DANYCH PRZEDMIOTÓW: ");
+            foreach(OcenaKoncowa ocena in oceny)
+            {
+                ocena.WypiszInfo();
+            }
         }
 
         public bool DodajOcene(string nazwaPrzedmiotu, double ocena, string data)
         {
-            return false;
+            Przedmiot tempPrzedmiot = null;
+
+            foreach(Wydzial wydzial in wydzialy)
+            {
+                foreach(Przedmiot przedmiot in wydzial.przedmioty)
+                {
+                    if(przedmiot.Nazwa == nazwaPrzedmiotu)
+                    {
+                        tempPrzedmiot = przedmiot;
+                        break;
+                    }
+                } 
+            }
+            if (tempPrzedmiot != null)
+            {
+                oceny.Add(new OcenaKoncowa(ocena, data, tempPrzedmiot));
+                Console.WriteLine("Ocena końcowa (" + ocena + ") z przedmiotu " + nazwaPrzedmiotu + " została pomyślnie dodana.");
+                return true;
+            } else
+            {
+                return false;
+            }
         }
     }
 
@@ -219,10 +253,34 @@ namespace Prog_obiektowe_WSB_Projekt
             this.tytulNaukowy = tytulNaukowy;
             this.stanowisko = stanowisko;
         }
+        public string ImieNazwisko
+        {
+            get
+            {
+                return imie + " " + nazwisko;
+            }
+        }
+
+        public string Imie
+        {
+            get
+            {
+                return imie;
+            }
+        }
+
+        public string Nazwisko
+        {
+            get
+            {
+                return nazwisko;
+            }
+        }
 
         public override void WypiszInfo()
         {
             base.WypiszInfo();
+            Console.Write("Tytuł naukowy: " + tytulNaukowy + "; Stanowisko: " + stanowisko + "; ");
         }
     }
 
@@ -232,7 +290,7 @@ namespace Prog_obiektowe_WSB_Projekt
         private string adres = "";
         private List<Wykladowca> wykladowcy = new List<Wykladowca>();
 
-            public string Nazwa { get { return nazwa; } }
+        public string Nazwa { get { return nazwa; } }
         public List<Wykladowca> Wykladowcy { get { return wykladowcy; } }
 
             public Jednostka(string nazwa, string adres)
@@ -243,27 +301,60 @@ namespace Prog_obiektowe_WSB_Projekt
 
         public void DodajWykladowce(Wykladowca w)
         {
-
+            wykladowcy.Add(w);
+            Console.WriteLine("Dodawanie wykładowcy " + w.ImieNazwisko + " zakończone powodzeniem.");
         }
 
         public bool UsunWykladowce(Wykladowca w)
         {
-            return false;
+            try
+            {
+                wykladowcy.Remove(w);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+
         }
 
         public bool UsunWykladowce(string imie, string nazwisko)
         {
-            return false;
+            Wykladowca tempWykladowca = null;
+            bool result = false;
+            foreach(Wykladowca w in wykladowcy)
+            {
+                if(w.Imie == imie && w.Nazwisko == nazwisko ) tempWykladowca = w;
+            }
+            if(tempWykladowca != null)
+            {
+                try
+                {
+                    wykladowcy.Remove(tempWykladowca);
+                    result = true;
+                }
+                catch { result = false; }
+            }
+            return result;
         }
 
         public void InfoWykladowcy()
         {
+            foreach(Wykladowca w in wykladowcy)
+            {
+                w.WypiszInfo();
+            }
 
         }
 
         public void WypiszInfo()
         {
-
+            Console.WriteLine("INFORMACJE O JEDNOSTCE " + nazwa + ":");
+            Console.WriteLine("NAZWA JEDNOSTKI: " + nazwa + ";");
+            Console.WriteLine("ADRES: " + adres + ";");
+            Console.WriteLine("Lista Wykładowców:");
+            InfoWykladowcy();
         }
     }
 
@@ -295,15 +386,18 @@ namespace Prog_obiektowe_WSB_Projekt
     {
         private double wartosc = 0.0;
         private string data = "";
+        private Przedmiot p;
 
         public OcenaKoncowa(double wartosc, string data, Przedmiot p)
         {
             this.wartosc = wartosc;
             this.data = data;
+            this.p = p;
         }
 
         public void WypiszInfo()
         {
+            Console.WriteLine("PRZEDMIOT: " + p.Nazwa + "; Ocena: " + wartosc + "; Data wystawienia: " + data + ";");
 
         }
     }
