@@ -43,12 +43,16 @@ namespace Prog_obiektowe_WSB_Projekt
         public bool DodajWykladowce(Wykladowca w, string nazwaJednostki)
         {
             bool czyIstniejeTakaJednostka = false;
-            foreach (Jednostka jednostka in jednostki)
+            for (int i = 0; i < jednostki.Count; )
             {
-                if (jednostka.Nazwa == nazwaJednostki)
+                if (jednostki[i].Nazwa == nazwaJednostki)
                 {
                     czyIstniejeTakaJednostka = true;
-                    jednostka.DodajWykladowce(w);
+                    jednostki[i].DodajWykladowce(w);
+                    break;
+                } else
+                {
+                    i++;
                 }
             }
             return czyIstniejeTakaJednostka;
@@ -56,24 +60,21 @@ namespace Prog_obiektowe_WSB_Projekt
 
         public void InfoStudenci(bool infoOceny)
         {
-            int lp = 1;
             foreach(Student s in studenci)
             {
-                Console.WriteLine(lp + ") ");
                 s.WypiszInfo();
                 if(infoOceny)s.InfoOceny();
-                lp++;
             }
         }
 
         public void InfoJednostki(bool infoWykladowcy)
         {
             int lp = 1;
-            foreach (Jednostka j in jednostki)
+            for (int i = 0; i < jednostki.Count; i++)
             {
-                Console.WriteLine("JEDNOSTKA NR. " + lp + ":");
-                j.WypiszInfo();
-                if (infoWykladowcy) j.InfoWykladowcy();
+                Console.WriteLine("\n\nJEDNOSTKA NR. " + lp + ":");
+                jednostki[i].WypiszInfo();
+                if (infoWykladowcy) jednostki[i].InfoWykladowcy();
                 lp++;
             }
 
@@ -82,7 +83,7 @@ namespace Prog_obiektowe_WSB_Projekt
         public void InfoPrzedmioty()
         {
             int lp = 1;
-            Console.WriteLine("Lista przedmiotów wykładanych na tym wydziale: ");
+            Console.WriteLine("\n\nLista przedmiotów wykładanych na tym wydziale: ");
             foreach(Przedmiot przedmiot in przedmioty)
             {
                 Console.WriteLine(lp + ") " + przedmiot.Nazwa);
@@ -94,10 +95,12 @@ namespace Prog_obiektowe_WSB_Projekt
         public bool DodajOcene(int nrIndeksu, string nazwaPrzedmiotu, double ocena, string data)
         {
             bool result = false;
+            bool przedmiotZnaleziony = false;
             foreach(Przedmiot przedmiot in przedmioty)
             {
                 if(przedmiot.Nazwa == nazwaPrzedmiotu)
                 {
+                    przedmiotZnaleziony = true;
                     foreach(Student s in studenci)
                     {
                         if(s.NrIndeksu == nrIndeksu)
@@ -108,7 +111,7 @@ namespace Prog_obiektowe_WSB_Projekt
                     if (!result) Console.WriteLine("Mimo prawidłowej nazwy przedmiotu, nie udało się odnaleźć studenta o podanym numerz indeksu. Ocena nie zostanie dodana.");
                 }
             }
-            if (!result) Console.WriteLine("Nie udało się odnaleźć przedmiotu o takiej nazwie. Ocena nie zostanie dodana..");
+            if (!przedmiotZnaleziony) Console.WriteLine("Nie udało się znaleźć przedmiotu o wskazanej nazwie...");
             return result;
         }
 
@@ -121,20 +124,19 @@ namespace Prog_obiektowe_WSB_Projekt
                 {
                     studenci.Remove(student);
                     student.wydzialy.Remove(this);
-                    Console.WriteLine("Student o numerze indeksu " + nrIndeksu + " został prawidłowo usunięty z listy.");
                     result = true;
+                    break;
                 }
             }
-            if (!result) Console.WriteLine("Nie udało się odnaleźć na liście studenta o podanym numerze Indeksu..");
             return result;
         }
 
-        public bool PzeniesWykladowce(Wykladowca w, string obecnaJednostka, string nowaJednostka)
+        public bool PrzeniesWykladowce(Wykladowca w, string obecnaJednostka, string nowaJednostka)
         {
             bool result = false;
             foreach(Jednostka j in jednostki)
             {
-                if(j.Nazwa == obecnaJednostka && j.Wykladowcy.Contains(w))
+                if(j.Nazwa == obecnaJednostka && j.wykladowcy.Contains(w))
                 {
                     j.UsunWykladowce(w);
                     foreach(Jednostka j2 in jednostki)
@@ -145,10 +147,8 @@ namespace Prog_obiektowe_WSB_Projekt
                             result = true;
                         }
                     }
-                    if (!result) Console.WriteLine("Coś poszło nie tak, nie udało się dodać Wykładowcy do nowej jednostki..");
                 }
             }
-            if (!result) Console.WriteLine("Podany Wykładowca nie pracuje w jednostce podanej jako \"obecna\". Brak możliwości przeniesienia..");
             return result;
         }
     }
@@ -168,7 +168,8 @@ namespace Prog_obiektowe_WSB_Projekt
 
         public virtual void WypiszInfo()
         {
-            Console.WriteLine("Imię i Nazwisko:" + imie + " " + nazwisko + "; Data Urodzenia: " + dataUrodzenia + "; "); 
+            Console.WriteLine("");
+            Console.Write(imie + " " + nazwisko + "; Data Urodzenia: " + dataUrodzenia + "; "); 
         }
     }
 
@@ -209,7 +210,7 @@ namespace Prog_obiektowe_WSB_Projekt
 
         public void InfoOceny()
         {
-            Console.WriteLine("OCENY KOŃCOWE Z DANYCH PRZEDMIOTÓW: ");
+            Console.WriteLine("\nOCENY KOŃCOWE Z DANYCH PRZEDMIOTÓW: ");
             foreach(OcenaKoncowa ocena in oceny)
             {
                 ocena.WypiszInfo();
@@ -288,10 +289,9 @@ namespace Prog_obiektowe_WSB_Projekt
     {
         private string nazwa = "";
         private string adres = "";
-        private List<Wykladowca> wykladowcy = new List<Wykladowca>();
+        public List<Wykladowca> wykladowcy = new List<Wykladowca>();
 
         public string Nazwa { get { return nazwa; } }
-        public List<Wykladowca> Wykladowcy { get { return wykladowcy; } }
 
             public Jednostka(string nazwa, string adres)
         {
@@ -302,7 +302,6 @@ namespace Prog_obiektowe_WSB_Projekt
         public void DodajWykladowce(Wykladowca w)
         {
             wykladowcy.Add(w);
-            Console.WriteLine("Dodawanie wykładowcy " + w.ImieNazwisko + " zakończone powodzeniem.");
         }
 
         public bool UsunWykladowce(Wykladowca w)
@@ -341,7 +340,8 @@ namespace Prog_obiektowe_WSB_Projekt
 
         public void InfoWykladowcy()
         {
-            foreach(Wykladowca w in wykladowcy)
+            Console.Write("LISTA WYKŁADOWCÓW:");
+            foreach (Wykladowca w in wykladowcy)
             {
                 w.WypiszInfo();
             }
@@ -350,11 +350,9 @@ namespace Prog_obiektowe_WSB_Projekt
 
         public void WypiszInfo()
         {
-            Console.WriteLine("INFORMACJE O JEDNOSTCE " + nazwa + ":");
             Console.WriteLine("NAZWA JEDNOSTKI: " + nazwa + ";");
             Console.WriteLine("ADRES: " + adres + ";");
-            Console.WriteLine("Lista Wykładowców:");
-            InfoWykladowcy();
+
         }
     }
 
@@ -406,7 +404,135 @@ namespace Prog_obiektowe_WSB_Projekt
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            Wydzial informatyka = new Wydzial();
+
+            informatyka.DodajJednostke("WSB Gdańsk", "al. Grunwaldzka XX 80-XXX Gdańsk");
+            informatyka.DodajJednostke("WSB Gdynia", "jakiś adres w Gdyni...");
+
+            Student s1 = new Student("Adam", "Andrus", "01.01.2001", "Informatyka", "Programowanie", 2, 1, 12345 );
+            Student s2 = new Student("Bartosz", "Bobas", "02.02.2002", "Cyberbezpieczeństwo", "Hakowanie", 1, 2, 54321);
+            Student s3 = new Student("Czesław", "Czeczen", "03.03.2003", "Robotyka", "Nanoboty", 3, 3, 67890);
+
+            Wykladowca w1 = new Wykladowca("Dawid", "Dębowiak", "04.04.1984", "Magister Inżynier", "Adiunkt");
+            Wykladowca w2 = new Wykladowca("Ernest", "Eustachewicz", "05.05.1975", "Doktor", "Dziekan");
+            Wykladowca w3 = new Wykladowca("Filip", "Frankowski", "06.06.1978", "Inżynier", "Wykładowca");
+
+            Przedmiot matematyka = new Przedmiot("Matematyka", "Informatyka", "Programowanie", 2, 36);
+            Przedmiot progObiektowe = new Przedmiot("Programowanie Obiektowe", "Informatyka", "Programowanie", 3, 36);
+
+            informatyka.DodajPrzedmiot(matematyka);
+            informatyka.DodajPrzedmiot(progObiektowe);
+
+            informatyka.DodajStudenta(s1);
+            informatyka.DodajStudenta(s2);
+            informatyka.DodajStudenta(s3);
+
+            if(informatyka.DodajWykladowce(w1, "WSB Gdańsk"))
+            {
+               Console.WriteLine("Dodawanie wykładowcy " + w1.ImieNazwisko + " zakończone powodzeniem.");
+            } else
+            {
+                Console.WriteLine("Nie udało się dodać wykładowcy do wskazanej jednostki.");
+            }
+
+            if(informatyka.DodajWykladowce(w2, "WSB Gdynia"))
+            {
+              Console.WriteLine("Dodawanie wykładowcy " + w2.ImieNazwisko + " zakończone powodzeniem.");
+            }
+            else
+            {
+                Console.WriteLine("Nie udało się dodać wykładowcy do wskazanej jednostki.");
+            }
+
+            if (informatyka.DodajWykladowce(w3, "WSB Gdańsk"))
+            {
+                Console.WriteLine("Dodawanie wykładowcy " + w3.ImieNazwisko + " zakończone powodzeniem.");
+            }
+            else
+            {
+                Console.WriteLine("Nie udało się dodać wykładowcy do wskazanej jednostki.");
+            }
+
+            informatyka.InfoStudenci(false);
+            informatyka.InfoJednostki(true);
+
+            informatyka.InfoPrzedmioty();
+
+            if(informatyka.DodajOcene(12345 , "Matematyka", 4.5 , "26.05.2022"))
+            { }
+             else
+            {
+                Console.WriteLine("Dodawanie oceny nie powiodło się...");
+            }
+
+            if (informatyka.DodajOcene(12345, "Religia", 3.5, "21.05.2022"))
+            { }
+            else
+            {
+                Console.WriteLine("Dodawanie oceny nie powiodło się...");
+            }
+
+            if (informatyka.DodajOcene(09876, "Matematyka", 4.5, "26.05.2022"))
+            { }
+            else
+            {
+                Console.WriteLine("Dodawanie oceny nie powiodło się...");
+            }
+            
+            if (informatyka.UsunStudenta(09876)) 
+            {
+                Console.WriteLine("Udało się usunąć wskazanego studenta.");
+            } else
+            {
+                Console.WriteLine("Nie udało się usunąć wskazanego studenta...");
+            }
+            
+            
+            if (informatyka.UsunStudenta(67890))
+            {
+                Console.WriteLine("Udało się usunąć wskazanego studenta.");
+            }
+            else
+            {
+                Console.WriteLine("Nie udało się usunąć wskazanego studenta...");
+            }
+
+            informatyka.InfoStudenci(false);
+            
+
+            Console.WriteLine("");
+
+            if(informatyka.PrzeniesWykladowce(w1, "WSB Gdynia" , "WSB Gdańsk"))
+            {
+                Console.WriteLine("Przenoszenie wykładowcy pomiędzy jednostkami zakończone powodzeniem.");
+            } else
+            {
+                Console.WriteLine("Nie udało się przenieść wykładowcy pomiędzy jednostkami...");
+            }
+
+            if (informatyka.PrzeniesWykladowce(w2, "WSB Gdynia", "WSB Gdańsk"))
+            {
+                Console.WriteLine("Przenoszenie wykładowcy pomiędzy jednostkami zakończone powodzeniem.");
+            }
+            else
+            {
+                Console.WriteLine("Nie udało się przenieść wykładowcy pomiędzy jednostkami...");
+            }
+
+            if (informatyka.PrzeniesWykladowce(w2, "WSB Gdańsk", "WSB Gdynia"))
+            {
+                Console.WriteLine("Przenoszenie wykładowcy pomiędzy jednostkami zakończone powodzeniem.");
+            }
+            else
+            {
+                Console.WriteLine("Nie udało się przenieść wykładowcy pomiędzy jednostkami...");
+            }
+
+            informatyka.InfoStudenci(true);
+
+
+
+
         }
     }
 }
