@@ -356,7 +356,7 @@ namespace Prog_obiektowe_WSB_Projekt
         }
     }
 
-    class Przedmiot
+    class Przedmiot : IInfo
     {
         private string nazwa = "";
         private string kierunek = "";
@@ -376,6 +376,11 @@ namespace Prog_obiektowe_WSB_Projekt
         public string Nazwa 
         { get
             { return nazwa; } 
+        }
+
+        public void WypiszInfo()
+        {
+            Console.WriteLine("PRZEDMIOT: " + nazwa + "; Kierunek: " + kierunek + "; Specjalność: " + specjalnosc + "; Semestr: " + semestr + "; Ilość Godzin: " + ileGodzin + ";");
         }
 
     }
@@ -455,29 +460,17 @@ namespace Prog_obiektowe_WSB_Projekt
 
             informatyka.InfoStudenci(false);
             informatyka.InfoJednostki(true);
+            informatyka.InfoJednostki(false);
 
             informatyka.InfoPrzedmioty();
 
-            if(informatyka.DodajOcene(12345 , "Matematyka", 4.5 , "26.05.2022"))
-            { }
-             else
-            {
-                Console.WriteLine("Dodawanie oceny nie powiodło się...");
-            }
+            if(!informatyka.DodajOcene(12345 , "Matematyka", 4.5 , "26.05.2022")) Console.WriteLine("Dodawanie oceny nie powiodło się...");
 
-            if (informatyka.DodajOcene(12345, "Religia", 3.5, "21.05.2022"))
-            { }
-            else
-            {
-                Console.WriteLine("Dodawanie oceny nie powiodło się...");
-            }
+            if (!informatyka.DodajOcene(54321, "Programowanie Obiektowe", 5.0, "28.05.2022")) Console.WriteLine("Dodawanie oceny nie powiodło się...");
 
-            if (informatyka.DodajOcene(09876, "Matematyka", 4.5, "26.05.2022"))
-            { }
-            else
-            {
-                Console.WriteLine("Dodawanie oceny nie powiodło się...");
-            }
+            if (!informatyka.DodajOcene(12345, "Religia", 3.5, "21.05.2022")) Console.WriteLine("Dodawanie oceny nie powiodło się...");
+
+            if (!informatyka.DodajOcene(09876, "Matematyka", 4.5, "26.05.2022")) Console.WriteLine("Dodawanie oceny nie powiodło się...");
             
             if (informatyka.UsunStudenta(09876)) 
             {
@@ -530,9 +523,15 @@ namespace Prog_obiektowe_WSB_Projekt
 
             informatyka.InfoStudenci(true);
 
+            Console.WriteLine("");
 
+            matematyka.WypiszInfo();
 
+            progObiektowe.WypiszInfo();
 
+            s1.WypiszInfo();
+
+            w1.WypiszInfo();
         }
     }
 }
